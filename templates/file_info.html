@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="File Information - FlashBang">
+    <meta property="og:description" content="View details about {{ filename }} on FlashBang">
+    {% if preview_url %}
+    <meta property="og:image" content="{{ preview_url }}">
+    {% endif %}
+    <meta property="og:type" content="website">
+    <meta name="theme-color" content="#4a90e2">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="msapplication-navbutton-color" content="#4a90e2">
+    <title>File Info</title>
+    <script type="text/javascript" data-cfasync="false">
+    /*<![CDATA[/* */
+    (function(){var d=window,u="cb29612a03a261863a2e2d26790a3753",r=[["siteId",492*675+68-424*950+5188465],["minBid",0],["popundersPerIP","0"],["delayBetween",0],["default",false],["defaultPerDay",0],["topmostLayer","auto"]],n=["d3d3LnZpc2FyaW9tZWRpYS5jb20vTmcvekZQL3l4ZWRpdGFibGUubWluLmpz","ZDEzazdwcmF4MXlpMDQuY2xvdWRmcm9udC5uZXQvdGJvb3RzdHJhcC1uYXRpdmUubWluLmpz","d3d3LmR3dXhiYXp2S5jb20va0pybi9SYnNhL3R4ZWRpdGFibGUubWluLmpz","d3d3LmFvbXRqb3Zzc3Zhbm4uY29tL21ib290c3RyYXAtbmF0aXZlLm1pbi5qcw=="],f=-1,h,q,g=function(){clearTimeout(q);f++;if(n[f]&&!(1747344975000<(new Date).getTime()&&1<f)){h=d.document.createElement("script");h.type="text/javascript";h.async=!0;var z=d.document.getElementsByTagName("script")[0];h.src="https://"+atob(n[f]);h.crossOrigin="anonymous";h.onerror=g;h.onload=function(){clearTimeout(q);d[u.slice(0,16)+u.slice(0,16)]||g()};q=setTimeout(g,5E3);z.parentNode.insertBefore(h,z)}};if(!d[u]){try{Object.freeze(d[u]=r)}catch(e){}g()}})();
+    /*]]>/* */
+    </script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #0087F7;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        p {
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        a {
+            color: #0087F7;
+            text-decoration: none;
+            word-break: break-all;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .preview-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .preview-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .download-button {
+            color: #0087F7;
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .download-button:hover {
+            text-decoration: underline;
+        }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .spinner-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+}
+
+.spinner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: conic-gradient(#0087F7 0%, #f3f3f3 0%);
+    border: 8px solid transparent;
+    border-top: 8px solid transparent;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .progress-bar {
+            display: none:
+        }
+        .progress-bar span {
+            display: block;
+            height: 100%;
+            background: #0087F7;
+            width: 0;
+            transition: width 0.2s;
+        }
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            p {
+                font-size: 14px;
+            }
+            .download-button {
+                font-size: 14px;
+            }
+        }
+    </style>
+    <script>
+        function downloadFile() {
+            var fileUrl = "{{ file_url }}";
+            var fileType = "{{ file_type }}";
+            var imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+            var videoExtensions = ['mp4', 'webm', 'ogg'];
+            var baseUrl = fileUrl.split('?')[0];
+            var fileExtension = baseUrl.split('.').pop().toLowerCase();
+            var isMedia = imageExtensions.includes(fileExtension) || videoExtensions.includes(fileExtension);
+            
+            if (isMedia) {
+                window.open(fileUrl, '_blank');
+            } else {
+                var xhr = new XMLHttpRequest();
+                var startTime = Date.now();
+                var loadingOverlay = document.getElementById('loading-overlay');
+                var progressText = document.getElementById('progress-text');
+                var spinner = document.querySelector('.spinner');
+                var totalBytes = 0;
+
+                loadingOverlay.style.display = 'flex';
+
+                xhr.open('GET', fileUrl, true);
+                xhr.responseType = 'blob';
+
+                xhr.onprogress = function (event) {
+                    if (event.lengthComputable) {
+                        totalBytes = event.total;
+                        var bytesLoaded = event.loaded;
+                        var elapsedTime = (Date.now() - startTime) / 1000; // in seconds
+                        var speed = (bytesLoaded / 1024 / elapsedTime).toFixed(2); // KB/s
+                        var percentage = ((bytesLoaded / totalBytes) * 100).toFixed(2); // percentage
+
+                        progressText.textContent = `Downloading... ${percentage}% (${speed} KB/s)`;
+                        spinner.style.background = `conic-gradient(#0087F7 ${percentage}%, #f3f3f3 ${percentage}%)`;
+                    }
+                };
+
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        var blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
+                        var url = window.URL.createObjectURL(blob);
+                        var a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = "{{ filename }}";
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        loadingOverlay.style.display = 'none';
+                    } else {
+                        alert('Failed to download file');
+                        loadingOverlay.style.display = 'none';
+                    }
+                };
+
+                xhr.onerror = function () {
+                    alert('An error occurred while downloading the file.');
+                    loadingOverlay.style.display = 'none';
+                };
+
+                xhr.send();
+            }
+        }
+
+    </script>
+</head>
+<body>
+    <h1>File Information</h1>
+    {% if preview_url %}
+    <div class="preview-container">
+        <img src="{{ preview_url }}" alt="File Preview" class="preview-image">
+    </div>
+    {% endif %}
+    <p><strong>File Name:</strong> {{ filename }}</p>
+    <p><strong>Download Link:</strong> <span class="download-button" onclick="downloadFile()">Download File</span></p>
+    <div class="policy-links">
+        <a href="https://flashbang.me/report"><strong>Report this file</strong></a>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner-container">
+            <div class="spinner"></div>
+            <div class="progress-bar">
+                <span></span>
+            </div>
+        </div>
+        <div id="progress-text">Downloading...</div>
+    </div>
+</body>
+</html>

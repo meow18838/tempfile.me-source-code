@@ -1,0 +1,365 @@
+<html>
+<head>
+    <title>FlashBang.me - File Upload</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #0087F7;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .dropzone {
+            border: 2px dashed #0087F7;
+            border-radius: 5px;
+            background: white;
+            padding: 50px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .dropzone.hover {
+            border-color: #E68133;
+            background-color: #f7f7f7;
+        }
+
+        .file-list {
+            margin: 20px 0;
+            padding: 0;
+            list-style-type: none;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .file-list li {
+            background-color: white;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-list button {
+            text-decoration: none;
+            color: #0087F7;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .file-list button:hover {
+            text-decoration: underline;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        label,
+        input[type="submit"] {
+            background-color: #0087F7;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        input[type="submit"] {
+            border: none;
+            font-size: 16px;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        a {
+            color: #0087F7;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .progress-bar {
+            width: 100%;
+            background-color: #e0e0e0;
+            padding: 3px;
+            border-radius: 3px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2);
+        }
+
+        .progress-bar-fill {
+            display: block;
+            height: 22px;
+            background-color: #0087F7;
+            border-radius: 3px;
+            transition: width 500ms ease-in-out;
+        }
+
+        .error-message {
+            color: #ff0000;
+            font-size: 14px;
+        }
+
+        .truncate {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        footer {
+            margin-top: 20px;
+            text-align: center;
+            width: 100%;
+            padding: 20px;
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .policy-links {
+            margin-bottom: 15px;
+        }
+
+        .policy-links a {
+            margin: 0 10px;
+            color: #0087F7;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .policy-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>FlashBang.me</h1>
+    <div class="dropzone">
+        <p>Drag &amp; Drop your files here</p>
+        <p>or</p>
+        <form id="upload-form" enctype="multipart/form-data">
+            <label for="file-input">Choose Files</label>
+            <input id="file-input" type="file" name="files" multiple="">
+            <input type="submit" value="Upload Files">
+        </form>
+    </div>
+    <ul class="file-list"></ul>
+    <footer>
+        <div class="policy-links">
+            <a href="https://flashbang.me/report"><strong>Report a file</strong></a>
+        </div>
+    </footer>
+    <script>
+        const MAX_FILE_SIZE = 5 * 1024 * 1024 * 1024; // 5GB
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            e.target.classList.add('hover');
+        }
+
+        function unhighlight(e) {
+            e.target.classList.remove('hover');
+        }
+
+        function handleDrop(e) {
+            let dt = e.dataTransfer;
+            let files = dt.files;
+            handleFiles(files);
+        }
+
+        function truncateFilename(filename, maxLength = 30) {
+            if (filename.length <= maxLength) return filename;
+            const extension = filename.split('.').pop();
+            const nameWithoutExtension = filename.slice(0, filename.length - extension.length - 1);
+            const truncatedName = nameWithoutExtension.slice(0, maxLength - 3 - extension.length) + '...';
+            return truncatedName + '.' + extension;
+        }
+
+        function handleFiles(files) {
+            let fileList = document.querySelector('.file-list');
+            let formData = new FormData();
+
+            for (let i = 0; i < files.length; i++) {
+                let file = files[i];
+                let li = document.createElement('li');
+                let truncatedFilename = truncateFilename(file.name);
+
+                if (file.size > MAX_FILE_SIZE) {
+                    li.innerHTML = `
+                <span class="truncate" title="${file.name}">${truncatedFilename}</span>
+                <span class="error-message">Error: File is too large (max 5GB)</span>
+            `;
+                } else {
+                    li.innerHTML = `
+                <span class="truncate" title="${file.name}">${truncatedFilename}</span>
+                <div class="progress-bar">
+                    <span class="progress-bar-fill" style="width: 0%"></span>
+                </div>
+            `;
+                    formData.append('files', file);
+                }
+
+                fileList.appendChild(li);
+            }
+
+            if (formData.has('files')) {
+                uploadFiles(formData);
+            }
+        }
+
+        function uploadFiles(formData) {
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload', true);
+
+            let startTime, endTime;
+            let uploadedBytes = 0;
+            let totalBytes = formData.get('files').size;
+
+            xhr.upload.onloadstart = function() {
+                startTime = new Date().getTime();
+            };
+
+            xhr.upload.onprogress = function (e) {
+                if (e.lengthComputable) {
+                    let percentComplete = (e.loaded / e.total) * 100;
+                    document.querySelectorAll('.progress-bar-fill').forEach(fill => {
+                        fill.style.width = percentComplete + '%';
+                    });
+
+                    // Calculate and display upload speed
+                    endTime = new Date().getTime();
+                    let duration = (endTime - startTime) / 1000; // seconds
+                    uploadedBytes = e.loaded;
+                    let speed = uploadedBytes / duration; // bytes per second
+
+                    let speedText = '';
+                    if (speed > 1024 * 1024) {
+                        speedText = (speed / (1024 * 1024)).toFixed(2) + ' MB/s';
+                    } else if (speed > 1024) {
+                        speedText = (speed / 1024).toFixed(2) + ' KB/s';
+                    } else {
+                        speedText = speed.toFixed(2) + ' B/s';
+                    }
+
+                    document.querySelectorAll('.file-list li').forEach(li => {
+                        let speedSpan = li.querySelector('.speed');
+                        if (!speedSpan) {
+                            speedSpan = document.createElement('span');
+                            speedSpan.className = 'speed';
+                            li.appendChild(speedSpan);
+                        }
+                        speedSpan.textContent = speedText + ' - ' + percentComplete.toFixed(2) + '%';
+                    });
+                }
+            };
+
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    let response = JSON.parse(xhr.responseText);
+                    let fileList = document.querySelector('.file-list');
+                    let fileItems = fileList.querySelectorAll('li');
+
+                    response.links.forEach((link, index) => {
+                        if (fileItems[index]) {
+                            let filenameSpan = fileItems[index].querySelector('span');
+                            let filename = filenameSpan.title;
+                            let truncatedFilename = filenameSpan.textContent;
+                            fileItems[index].innerHTML = `
+                        <span class="truncate" title="${filename}">${truncatedFilename}</span>
+                        <div>
+                            <button onclick="window.open('${link}', '_blank')">View</button>
+                            <button onclick="copyLink('${link}')">Copy</button>
+                        </div>
+                    `;
+                        }
+                    });
+                } else {
+                    document.querySelectorAll('.file-list li').forEach(li => {
+                        let filenameSpan = li.querySelector('span');
+                        let filename = filenameSpan.title;
+                        let truncatedFilename = filenameSpan.textContent;
+                        li.innerHTML = `
+                    <span class="truncate" title="${filename}">${truncatedFilename}</span>
+                    <span class="error-message">Upload failed: ${xhr.statusText}</span>
+                `;
+                    });
+                }
+            };
+
+            xhr.onerror = function () {
+                document.querySelectorAll('.file-list li').forEach(li => {
+                    let filenameSpan = li.querySelector('span');
+                    let filename = filenameSpan.title;
+                    let truncatedFilename = filenameSpan.textContent;
+                    li.innerHTML = `
+                <span class="truncate" title="${filename}">${truncatedFilename}</span>
+                <span class="error-message">Upload failed: Network error</span>
+            `;
+                });
+            };
+
+            xhr.send(formData);
+        }
+
+        function copyLink(link) {
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Link copied to clipboard');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            let dropzone = document.querySelector('.dropzone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, preventDefaults, false);
+            });
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropzone.addEventListener(eventName, highlight, false);
+            });
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, unhighlight, false);
+            });
+            dropzone.addEventListener('drop', handleDrop, false);
+
+            // Add event listener for file input change
+            document.getElementById('file-input').addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+
+            // Add event listener for form submit
+            document.getElementById('upload-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                let files = document.getElementById('file-input').files;
+                handleFiles(files);
+            });
+        });
+    </script>
+</body>
+</html>
